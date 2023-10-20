@@ -11,8 +11,8 @@ canvas.fill("black")
 screen = pygame.display.set_mode((swidth, sheight))
 pygame.display.set_caption('Double Pendulum Simulation in Python')
 
-icon = pygame.image.load('pendulum2.png')
-pygame.display.set_icon(icon)
+# icon = pygame.image.load('pendulum2.png')
+# pygame.display.set_icon(icon)
 
 clock = pygame.time.Clock()
 running = True
