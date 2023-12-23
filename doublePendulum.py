@@ -16,6 +16,7 @@ pygame.display.set_caption('Double Pendulum Simulation in Python')
 
 clock = pygame.time.Clock()
 running = True
+start = False
 dt = 0
 
 # CENTER
@@ -69,66 +70,81 @@ system3 = {
 
 systems = [system1, system2, system3]
 
-for system in systems :
-    system['x1'] = p + system['r1']*sin(system['a1'])
-    system['y1'] = q + system['r1']*cos(system['a1'])
-    system['x2'] = system['x1'] + system['r2']*sin(system['a2'])
-    system['y2'] = system['y1'] + system['r2']*cos(system['a2'])
+for s in systems :
+    s['x1'] = p + s['r1']*sin(s['a1'])
+    s['y1'] = q + s['r1']*cos(s['a1'])
+    s['x2'] = s['x1'] + s['r2']*sin(s['a2'])
+    s['y2'] = s['y1'] + s['r2']*cos(s['a2'])
 
+def keyActions():
+    global sound_on
+    keys = pygame.key.get_pressed()
+    
+    if keys[pygame.K_SPACE]:
+        return 1
+    
+    return 0
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
+        if event.type == pygame.KEYDOWN:
+            start = keyActions()      # handle key inputs to select sorting algorithm
+            while not pygame.KEYUP:
+                continue
     
     screen.fill("black")
 
-# DOUBLE PENDULUM SIMULATION
-    for system in systems :
-        system['cvs'].set_colorkey((0, 0, 0))
-        system['cvs'].fill((0, 0, 0))
-        
-        system['px2'] = system['x2']
-        system['py2'] = system['y2']
+    if not start:
+        continue
 
-        system['x1'] = p + system['r1']*sin(system['a1'])
-        system['y1'] = q + system['r1']*cos(system['a1'])
-        system['x2'] = system['x1'] + system['r2']*sin(system['a2'])
-        system['y2'] = system['y1'] + system['r2']*cos(system['a2'])
+# DOUBLE PENDULUM SIMULATION
+    for s in systems :
+        s['cvs'].set_colorkey((0, 0, 0))
+        s['cvs'].fill((0, 0, 0))
+        
+        s['px2'] = s['x2']
+        s['py2'] = s['y2']
+
+        s['x1'] = p + s['r1']*sin(s['a1'])
+        s['y1'] = q + s['r1']*cos(s['a1'])
+        s['x2'] = s['x1'] + s['r2']*sin(s['a2'])
+        s['y2'] = s['y1'] + s['r2']*cos(s['a2'])
 
         # PENDULUM PATH TRACING
-        pygame.draw.line(canvas, system['color'], pygame.Vector2(system['px2'], system['py2']), pygame.Vector2(system['x2'], system['y2']), 2)
+        pygame.draw.line(canvas, s['color'], pygame.Vector2(s['px2'], s['py2']), pygame.Vector2(s['x2'], s['y2']), 2)
         screen.blit(canvas, (0,0))
 
         # PENDULUM DRAWING
-        intensity = 50 + int(dist((system['px2'],system['py2']), (system['x2'], system['y2'])))*4
+        intensity = 50 + int(dist((s['px2'],s['py2']), (s['x2'], s['y2'])))*4
         line_color = pygame.Color(intensity, intensity, intensity)
-        pygame.draw.line(system['cvs'], line_color, pygame.Vector2(p,q), pygame.Vector2(system['x1'], system['y1']), 5)
-        pygame.draw.line(system['cvs'], line_color, pygame.Vector2(system['x1'],system['y1']), pygame.Vector2(system['x2'], system['y2']), 5)
-        pygame.draw.circle(system['cvs'], system['color'], pygame.Vector2(system['x1'], system['y1']), system['m1']/4)
-        pygame.draw.circle(system['cvs'], system['color'], pygame.Vector2(system['x2'], system['y2']), system['m2']/4)
+        pygame.draw.line(s['cvs'], line_color, pygame.Vector2(p,q), pygame.Vector2(s['x1'], s['y1']), 5)
+        pygame.draw.line(s['cvs'], line_color, pygame.Vector2(s['x1'],s['y1']), pygame.Vector2(s['x2'], s['y2']), 5)
+        pygame.draw.circle(s['cvs'], s['color'], pygame.Vector2(s['x1'], s['y1']), s['m1']/4)
+        pygame.draw.circle(s['cvs'], s['color'], pygame.Vector2(s['x2'], s['y2']), s['m2']/4)
 
-        num1 = -1 * system['g'] * (2 * system['m1'] + system['m2']) * sin(system['a1'])
-        num2 = -1 * system['m2'] * system['g'] * sin(system['a1'] - 2*system['a2'])
-        num3 = -2 * sin(system['a1'] - system['a2']) * system['m2']
-        num4 = system['v2']*system['v2'] * system['r2'] + system['v1']*system['v1'] * system['r1'] * cos(system['a1'] - system['a2'])
-        den  = system['r1'] * (2*system['m1'] + system['m2'] - system['m2'] * cos(2*system['a1'] - 2*system['a2']))
+        num1 = -1 * s['g'] * (2 * s['m1'] + s['m2']) * sin(s['a1'])
+        num2 = -1 * s['m2'] * s['g'] * sin(s['a1'] - 2*s['a2'])
+        num3 = -2 * sin(s['a1'] - s['a2']) * s['m2']
+        num4 = s['v2']*s['v2'] * s['r2'] + s['v1']*s['v1'] * s['r1'] * cos(s['a1'] - s['a2'])
+        den  = s['r1'] * (2*s['m1'] + s['m2'] - s['m2'] * cos(2*s['a1'] - 2*s['a2']))
         acc1 = (num1 + num2 + num3*num4) / den
 
-        num1 = 2 * sin(system['a1'] - system['a2'])
-        num2 = system['v1']*system['v1'] * system['r1'] * (system['m1'] + system['m2'])
-        num3 = system['g'] * (system['m1'] + system['m2']) * cos(system['a1'])
-        num4 = system['v2']*system['v2'] * system['r2']  * system['m2'] * cos(system['a1'] - system['a2'])
-        den  = system['r2'] * (2*system['m1'] + system['m2'] - system['m2'] * cos(2*system['a1'] - 2*system['a2']))
+        num1 = 2 * sin(s['a1'] - s['a2'])
+        num2 = s['v1']*s['v1'] * s['r1'] * (s['m1'] + s['m2'])
+        num3 = s['g'] * (s['m1'] + s['m2']) * cos(s['a1'])
+        num4 = s['v2']*s['v2'] * s['r2']  * s['m2'] * cos(s['a1'] - s['a2'])
+        den  = s['r2'] * (2*s['m1'] + s['m2'] - s['m2'] * cos(2*s['a1'] - 2*s['a2']))
         acc2 = ( num1*(num2 + num3 + num4) ) / den
 
-        system['v1'] += acc1;
-        system['v2'] += acc2;
-        system['a1'] += system['v1'];
-        system['a2'] += system['v2'];
+        s['v1'] += acc1;
+        s['v2'] += acc2;
+        s['a1'] += s['v1'];
+        s['a2'] += s['v2'];
     
-    for system in systems :
-        screen.blit(system['cvs'], (0,0))
+    for s in systems :
+        screen.blit(s['cvs'], (0,0))
 
     pygame.draw.circle(screen, "tan4", pygame.Vector2(p, q), 5)
     pygame.display.flip()
